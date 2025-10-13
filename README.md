@@ -1,36 +1,68 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 📚 레거시 서점 리팩토링 과제
 
-## Getting Started
+## 과제 개요
 
-First, run the development server:
+이 프로젝트는 의도적으로 나쁜 코드 패턴과 안티패턴으로 작성된 온라인 서점 웹 애플리케이션입니다.
+실무에서 레거시 코드를 개선하는 것과 유사한 경험을 제공하기 위해 만들어졌습니다.
+
+## 과제 목표
+
+현재 코드베이스의 문제점을 파악하고 개선하여, 프로덕션 환경에서 운영 가능한 수준으로 리팩토링하는 것이 목표입니다.
+
+**개선 범위에는 제한이 없으며, 자유롭게 리팩토링하시기 바랍니다.**
+
+## 제출 방법
+
+1. 리팩토링 작업 수행
+2. 소스코드 압축 (zip 파일)
+3. 이메일로 전송: scy@pooolingforest.com
+4. **실제 이 프로젝트를 의뢰 받은 상황에서, 개선 결과를 고객에게 전달한다는 관점에서 이메일 본문 작성**
+5. 이메일에 다음 내용 포함:
+   - 개선한 주요 문제점 목록
+   - 기간 내 작업하지 못한 부분이 있다면, 추가 개선이 필요한 부분
+
+## 시작하기
 
 ```bash
+npm install
+node src/utils/init-db.js
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 http://localhost:3000 접속
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+**관리자 기능 테스트**: 관리자 로그인 버튼 클릭 후 비밀번호 입력 (코드에서 확인 가능)
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 참고사항
 
-## Learn More
+- 모든 기능이 정상 동작해야 함
+- 필요시 새로운 라이브러리 추가 가능
 
-To learn more about Next.js, take a look at the following resources:
+## 프로젝트 구조
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+```
+src/
+├── app/
+│   ├── page.tsx              # 메인 페이지
+│   ├── globals.css           # 전역 스타일
+│   └── api/
+│       ├── books/route.ts    # 도서 API
+│       ├── cart/route.ts     # 장바구니 API
+│       └── admin/route.ts    # 관리자 API
+└── utils/
+    ├── db.js                 # DB 유틸 (SQLite 연동)
+    └── init-db.js            # DB 초기화 스크립트
+bookstore.db                  # SQLite 데이터베이스 파일
+```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+## 주요 기능
 
-## Deploy on Vercel
+- 📖 도서 목록 조회
+- 🔍 도서 검색
+- 🛒 장바구니 담기
+- 🔐 관리자 로그인
+- ➕ 도서 추가
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+---
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+**Good Luck! 🚀**

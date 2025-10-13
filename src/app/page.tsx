@@ -1,103 +1,196 @@
-import Image from "next/image";
+"use client";
+import { useEffect, useState } from "react";
+import { useSearchParams } from "next/navigation";
+
+var ADMIN_PASSWORD = "admin123";
+let API_URL = "http://localhost:3000/api";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const searchParams = useSearchParams();
+  const [books, setBooks] = useState([]);
+  const [cart, setcart] = useState([]);
+  const [user_name, setUserName] = useState("");
+  const [AdminMode, setAdminMode] = useState(false);
+  const [newBookTitle, setnewbooktitle] = useState("");
+  const [newBookPrice, setNewBookPrice] = useState("");
+  const [SearchTerm, setSearchTerm] = useState("");
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  useEffect(() => {
+    fetch(API_URL + "/books")
+      .then((res) => res.json())
+      .then((data) => setBooks(data));
+
+    if (searchParams.get("admin") == "true") {
+      setAdminMode(true);
+      setUserName(searchParams.get("user") || "");
+    }
+  }, []);
+
+  function addToCart(book) {
+    fetch(API_URL + "/cart?bookId=" + book.id + "&user=" + user_name)
+      .then((res) => res.json())
+      .then(() => {
+        setcart([...cart, book]);
+        alert("장바구니에 추가되었습니다!");
+      });
+  }
+
+  function adminLogin() {
+    var password = prompt("관리자 비밀번호를 입력하세요");
+    if (password == ADMIN_PASSWORD) {
+      setAdminMode(true);
+      alert("관리자 모드 활성화");
+    }
+  }
+
+  const addBook = () => {
+    if (!newBookTitle || !newBookPrice) return;
+
+    fetch(API_URL + "/books", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: newBookTitle,
+        price: newBookPrice,
+        admin: AdminMode ? "true" : "false",
+      }),
+    })
+      .then((res) => res.json())
+      .then((newBook) => {
+        setBooks([...books, newBook]);
+        setnewbooktitle("");
+        setNewBookPrice("");
+      });
+  };
+
+  const FilteredBooks = SearchTerm
+    ? books.filter((b) =>
+        b.title.toLowerCase().includes(SearchTerm.toLowerCase())
+      )
+    : books;
+  return (
+    <div className="bg-white min-h-screen">
+      <nav
+        className="p-4 mb-5"
+        style={{ background: "#2c3e50", color: "white" }}
+      >
+        <div className="flex justify-between items-center">
+          <h2 className="text-2xl font-bold">📚 레거시 서점</h2>
+          <div className="flex gap-4">
+            <a
+              href="/"
+              className="px-3 py-1 rounded"
+              style={{ background: "#34495e" }}
+            >
+              홈
+            </a>
+            <a
+              href="/login"
+              className="px-3 py-1 rounded"
+              style={{ background: "#34495e" }}
+            >
+              로그인
+            </a>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+      </nav>
+
+      <div className="p-5">
+        <input
+          placeholder="도서 검색..."
+          value={SearchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="w-full px-4 py-2 mb-5 rounded"
+          style={{ border: "1px solid #ddd", background: "#fafafa" }}
+        />
+
+        {AdminMode && (
+          <div
+            className="p-4 mb-5 rounded"
+            style={{ background: "#fffef7", border: "1px solid #f0e68c" }}
+          >
+            <h3 className="mb-3 font-semibold" style={{ color: "#34495e" }}>
+              📝 도서 추가 (관리자 전용)
+            </h3>
+            <input
+              placeholder="제목"
+              value={newBookTitle}
+              onChange={(e) => setnewbooktitle(e.target.value)}
+              className="px-3 py-2 mr-2 border border-gray-300 rounded"
+              style={{ background: "#fff" }}
+            />
+            <input
+              placeholder="가격"
+              value={newBookPrice}
+              onChange={(e) => setNewBookPrice(e.target.value)}
+              className="px-3 py-2 mr-2 border border-gray-300 rounded"
+              style={{ background: "#fff" }}
+              type="text"
+            />
+            <button
+              onClick={addBook}
+              className="px-4 py-2 text-white rounded"
+              style={{ background: "#27ae60" }}
+            >
+              추가
+            </button>
+          </div>
+        )}
+
+        <div className="grid grid-cols-3 gap-5">
+          {FilteredBooks.map((book, idx) => (
+            <div
+              key={idx}
+              className="p-4 rounded-lg shadow-sm"
+              style={{ border: "1px solid #e0e0e0", background: "#fefefe" }}
+            >
+              <h3 className="mb-2 font-semibold" style={{ color: "#2980b9" }}>
+                {book.title}
+              </h3>
+              <p
+                className="text-lg font-bold mb-1"
+                style={{ color: "#c0392b" }}
+              >
+                {book.price}원
+              </p>
+              <p className="text-sm mb-3" style={{ color: "#7f8c8d" }}>
+                재고: {book.stock || "정보없음"}
+              </p>
+              <button
+                onClick={() => addToCart(book)}
+                className="w-full py-2 text-white rounded border-0 cursor-pointer"
+                style={{ background: "#e74c3c" }}
+              >
+                장바구니 담기
+              </button>
+            </div>
+          ))}
+        </div>
+
+        {cart.length > 0 && (
+          <div className="mt-8 p-5 rounded" style={{ background: "#f8f9fa" }}>
+            <h2 className="mb-4 font-bold" style={{ color: "#2c3e50" }}>
+              🛒 장바구니 ({cart.length})
+            </h2>
+            {cart.map((item, i) => (
+              <div
+                key={i}
+                className="py-2 border-b"
+                style={{ borderColor: "#dee2e6" }}
+              >
+                {item.title} - {item.price}원
+              </div>
+            ))}
+            <div
+              className="mt-4 text-xl font-bold"
+              style={{ color: "#2c3e50" }}
+            >
+              총액: {cart.reduce((sum, item) => sum + parseInt(item.price), 0)}
+              원
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 }
