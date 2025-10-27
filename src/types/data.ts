@@ -7,13 +7,13 @@ export type Book = {
 
 export type Cart = {
     id: number;
-    bookId:number;
-    userName:String;
-    createAt:Date;
+    bookId: number;
+    userName: String;
+    createAt: Date;
 }
 
 export type User = {
     authenticated: boolean;
-    name?:String;
-    role?: String;
+    name?: String;
+    role: 'admin' | 'user';
 }
