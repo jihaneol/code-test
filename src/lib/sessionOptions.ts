@@ -1,6 +1,7 @@
 import { IronSessionOptions } from "iron-session";
+import {User} from "@/types/data";
 export type SessionData = {
-    user?: { name: string; role: 'admin' | 'user' };
+    user?: User;
 };
 
 export const sessionOptions: IronSessionOptions = {
@@ -10,6 +11,6 @@ export const sessionOptions: IronSessionOptions = {
         secure: true,         // https에서 true 권장
         httpOnly: true,       // JS에서 접근 불가
         sameSite: 'lax',
-        maxAge: 60*2
+        maxAge: 60*7
     },
 };
