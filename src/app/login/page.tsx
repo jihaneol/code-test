@@ -1,6 +1,7 @@
 "use client";
-import { useState } from "react";
-import { useRouter } from "next/navigation";
+import {useState} from "react";
+import {useRouter} from "next/navigation";
+import Header from "@/components/Header";
 
 var ADMIN_PASSWORD = "admin123";
 
@@ -20,31 +21,7 @@ export default function Login() {
 
   return (
     <div className="bg-white min-h-screen">
-      <nav
-        className="p-4 mb-5"
-        style={{ background: "#2c3e50", color: "white" }}
-      >
-        <div className="flex justify-between items-center">
-          <h2 className="text-xl font-bold">📚 레거시 서점</h2>
-          <div className="flex gap-4">
-            <a
-              href="/"
-              className="px-3 py-1 rounded"
-              style={{ background: "#34495e" }}
-            >
-              홈
-            </a>
-            <a
-              href="/login"
-              className="px-3 py-1 rounded"
-              style={{ background: "#34495e" }}
-            >
-              로그인
-            </a>
-          </div>
-        </div>
-      </nav>
-
+      <Header/>
       <div className="p-5">
         <h1
           style={{ color: "#2c3e50", fontSize: "32px" }}
