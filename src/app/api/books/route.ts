@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {Book} from "@/types/data";
 const db = require('@/utils/db')
 
 export async function GET(request: NextRequest) {
-  const books = db.getBooks()
+  const books:Book = db.getBooks()
   return NextResponse.json(books)
 }
-
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
@@ -25,7 +25,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(newBook)
-  } catch (error) {
+  } catch (error:any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -33,15 +33,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
+  // id 검증
 
-  const Database = require('better-sqlite3')
-  const path = require('path')
-  const dbPath = path.join(process.cwd(), 'bookstore.db')
-  const database = new Database(dbPath)
-
-  const stmt = database.prepare("DELETE FROM books WHERE id = " + id)
-  stmt.run()
-
-  database.close()
+  db.deleteBook(id)
   return NextResponse.json({ success: true })
 }
