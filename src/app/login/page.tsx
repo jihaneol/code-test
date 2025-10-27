@@ -3,19 +3,26 @@ import {useState} from "react";
 import {useRouter} from "next/navigation";
 import Header from "@/components/Header";
 
-var ADMIN_PASSWORD = "admin123";
 
 export default function Login() {
   const router = useRouter();
   const [user_name, setUserName] = useState("");
   const [password, setPassword] = useState("");
 
-  function handleLogin() {
-    if (password == ADMIN_PASSWORD) {
+  async function handleLogin() {
+
+    const res = await fetch('/api/auth/login', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({ user_name, password })
+    })
+
+    if (res.ok) {
       alert("로그인 성공!");
-      router.push("/?admin=true&user=" + user_name);
+      router.push("/");
+      router.refresh();
     } else {
-      alert("비밀번호가 틀렸습니다");
+      alert("로그인 실패");
     }
   }
 
