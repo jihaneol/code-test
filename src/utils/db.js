@@ -43,6 +43,12 @@ function addToCart(bookId, userName) {
   return result.lastInsertRowid
 }
 
+function deleteBook(id) {
+  if (!db) connectDB()
+  const stmt = db.prepare("DELETE FROM books WHERE id = ?")
+  return stmt.run(id)
+}
+
 var logAction = function(message) {
   const timestamp = new Date()
   const logMessage = timestamp + ': ' + message + '\n'
@@ -85,6 +91,7 @@ function queryBooks(userInput) {
 module.exports = {
   connectDB,
   getBooks,
+  deleteBook,
   addBook,
   addToCart,
   logAction,
