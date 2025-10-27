@@ -1,16 +1,18 @@
 import { NextRequest, NextResponse } from 'next/server'
 import fs from 'fs'
+import {getIronSession} from "iron-session";
+import {SessionData, sessionOptions} from "@/lib/sessionOptions";
+import {cookies} from "next/headers";
 const Database = require('better-sqlite3')
 const path = require('path')
 
-const ADMIN_TOKEN = 'admin-secret-token-123'
 
 export async function POST(request: NextRequest) {
   const body = await request.json()
 
-  if (body.token != ADMIN_TOKEN) {
-    return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-  }
+  const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+
 
   const action = body.action
   const dbPath = path.join(process.cwd(), 'bookstore.db')
@@ -61,17 +63,18 @@ export async function POST(request: NextRequest) {
   return NextResponse.json({ error: 'Unknown action' })
 }
 
-export async function GET(request: NextRequest) {
-  const { searchParams } = new URL(request.url)
-  const token = searchParams.get('token')
-
-  if (token == ADMIN_TOKEN) {
-    return NextResponse.json({
-      message: 'Admin access granted',
-      adminToken: ADMIN_TOKEN,
-      timestamp: Date.now()
-    })
-  }
-
-  return NextResponse.json({ error: 'Invalid token' })
-}
+// session 사용중
+// export async function GET(request: NextRequest) {
+//   const { searchParams } = new URL(request.url)
+//   const token = searchParams.get('token')
+//
+//   if (token == ADMIN_TOKEN) {
+//     return NextResponse.json({
+//       message: 'Admin access granted',
+//       adminToken: ADMIN_TOKEN,
+//       timestamp: Date.now()
+//     })
+//   }
+//
+//   return NextResponse.json({ error: 'Invalid token' })
+// }
