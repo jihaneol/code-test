@@ -11,7 +11,7 @@ export async function GET(req: NextRequest) {
 
     return NextResponse.json({
         authenticated: true,
-        user_name: session.user.name,
+        name: session.user.name,
         role: session.user.role,
     });
 }
