@@ -1,35 +1,39 @@
 "use client";
 import {useEffect, useState} from "react";
-import {useSearchParams} from "next/navigation";
-import {Book} from "@/types/data";
+import {Book, User} from "@/types/data";
 import Header from "@/components/Header";
 
-var ADMIN_PASSWORD = "admin123";
 let API_URL = "http://localhost:3000/api";
 
 export default function Home() {
-  const searchParams = useSearchParams();
+  const [user, setUser] = useState<User|null>(null)
   const [books, setBooks] = useState<Book[]>([]);
   const [cart, setcart] = useState<Book[]>([]);
-  const [user_name, setUserName] = useState("");
-  const [AdminMode, setAdminMode] = useState(false);
   const [newBookTitle, setnewbooktitle] = useState("");
   const [newBookPrice, setNewBookPrice] = useState<number|"">("");
   const [SearchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
+    (async () => {
+      const res = await fetch('/api/auth/me', { cache: 'no-store' });
+      const data = await res.json();
+      setUser(data);
+    })();
+
     fetch(API_URL + "/books")
       .then((res) => res.json())
       .then((data) => setBooks(data));
-
-    if (searchParams.get("admin") == "true") {
-      setAdminMode(true);
-      setUserName(searchParams.get("user") || "");
-    }
   }, []);
 
   function addToCart(book : Book) {
-    fetch(API_URL + "/cart?bookId=" + book.id + "&user=" + user_name)
+    fetch(API_URL + "/cart" , {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookId:book.id,
+        user:user?.name
+      }),
+    })
       .then((res) => res.json())
       .then(() => {
         setcart([...cart, book]);
@@ -39,10 +43,6 @@ export default function Home() {
 
   function adminLogin() {
     var password = prompt("관리자 비밀번호를 입력하세요");
-    if (password == ADMIN_PASSWORD) {
-      setAdminMode(true);
-      alert("관리자 모드 활성화");
-    }
   }
 
   const addBook = () => {
@@ -54,7 +54,7 @@ export default function Home() {
       body: JSON.stringify({
         title: newBookTitle,
         price: newBookPrice,
-        admin: AdminMode ? "true" : "false",
+        admin: user?.role == "admin" ? "true" : "false",
       }),
     })
       .then((res) => res.json())
@@ -70,6 +70,9 @@ export default function Home() {
         b.title.toLowerCase().includes(SearchTerm.toLowerCase())
       )
     : books;
+
+  if (user === null) return <div>로딩중...</div>;
+
   return (
     <div className="bg-white min-h-screen">
       <Header/>
@@ -82,7 +85,7 @@ export default function Home() {
           style={{ border: "1px solid #ddd", background: "#fafafa" }}
         />
 
-        {AdminMode && (
+        {user.authenticated && user.role == "admin" && (
           <div
             className="p-4 mb-5 rounded"
             style={{ background: "#fffef7", border: "1px solid #f0e68c" }}
@@ -100,6 +103,9 @@ export default function Home() {
             <input
               placeholder="가격"
               value={newBookPrice}
+              inputMode="numeric"    // 모바일 키패드 숫자
+              min={0}
+              step={1}
               onChange={(e) => setNewBookPrice(Number(e.target.value))}
               className="px-3 py-2 mr-2 border border-gray-300 rounded"
               style={{ background: "#fff" }}
