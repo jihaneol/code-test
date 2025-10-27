@@ -8,24 +8,35 @@ let API_URL = "http://localhost:3000/api";
 export default function Home() {
   const [user, setUser] = useState<User|null>(null)
   const [books, setBooks] = useState<Book[]>([]);
-  const [cart, setcart] = useState<Book[]>([]);
+  const [cart, setCart] = useState<Book[]>([]);
   const [newBookTitle, setnewbooktitle] = useState("");
   const [newBookPrice, setNewBookPrice] = useState<number|"">("");
   const [SearchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
-    (async () => {
-      const res = await fetch('/api/auth/me', { cache: 'no-store' });
-      const data = await res.json();
-      setUser(data);
-    })();
+
+    fetch(API_URL + "/auth/me", {cache: 'no-store'})
+        .then((res) => res.json())
+        .then((data) => setUser(data));
 
     fetch(API_URL + "/books")
       .then((res) => res.json())
       .then((data) => setBooks(data));
   }, []);
 
+  useEffect(() => {
+    if (!user?.authenticated) return;
+    (async () => {
+      const cartRes = await fetch("/api/cart", { cache: "no-store", credentials: "same-origin" });
+      const data = await cartRes.json()
+      setCart(data);
+    })();
+
+  }, [user?.authenticated]);
+
   function addToCart(book : Book) {
+    console.log(user)
+    console.log(user?.name)
     fetch(API_URL + "/cart" , {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -36,7 +47,7 @@ export default function Home() {
     })
       .then((res) => res.json())
       .then(() => {
-        setcart([...cart, book]);
+        setCart([...cart, book]);
         alert("장바구니에 추가되었습니다!");
       });
   }
