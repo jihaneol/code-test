@@ -1,18 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
+import {Book} from "@/types/data";
+import {getIronSession} from "iron-session";
+import {SessionData, sessionOptions} from "@/lib/sessionOptions";
+import {cookies} from "next/headers";
 const db = require('@/utils/db')
 
 export async function GET(request: NextRequest) {
-  const books = db.getBooks()
+  const books:Book = db.getBooks()
   return NextResponse.json(books)
 }
-
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.user?.role !== "user") NextResponse.json({ error: "Forbidden" }, { status: 403});
 
-    if (body.admin !== 'true') {
-      return NextResponse.json({ error: '권한 없음' }, { status: 403 })
-    }
+    const body = await request.json()
 
     const stock = Math.floor(Math.random() * 20) + 1
     const bookId = db.addBook(body.title, body.price, stock)
@@ -25,7 +28,7 @@ export async function POST(request: NextRequest) {
     }
 
     return NextResponse.json(newBook)
-  } catch (error) {
+  } catch (error:any) {
     return NextResponse.json({ error: error.message }, { status: 500 })
   }
 }
@@ -33,15 +36,8 @@ export async function POST(request: NextRequest) {
 export async function DELETE(request: NextRequest) {
   const { searchParams } = new URL(request.url)
   const id = searchParams.get('id')
+  // id 검증
 
-  const Database = require('better-sqlite3')
-  const path = require('path')
-  const dbPath = path.join(process.cwd(), 'bookstore.db')
-  const database = new Database(dbPath)
-
-  const stmt = database.prepare("DELETE FROM books WHERE id = " + id)
-  stmt.run()
-
-  database.close()
+  db.deleteBook(id)
   return NextResponse.json({ success: true })
 }

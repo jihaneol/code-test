@@ -43,6 +43,38 @@ function addToCart(bookId, userName) {
   return result.lastInsertRowid
 }
 
+function getCart(userName){
+  if (!db) connectDB()
+  const stmt = db.prepare(`
+    SELECT b.id, b.title, b.price, b.stock
+    FROM cart AS c
+           JOIN books AS b
+                ON b.id = c.book_id
+    WHERE c.user_name = ?
+    ORDER BY c.created_at DESC
+  `);
+  const rows = stmt.all(userName);
+  return rows
+}
+
+function deleteAllCart() {
+  if (!db) connectDB()
+  const stmt = dp.prepare("DELETE FROM cart")
+  stmt.run()
+}
+
+function deleteCart(user) {
+  if (!db) connectDB()
+  const stmt = dp.prepare("DELETE FROM cart WHERE user_name = ?")
+  stmt.run(user)
+}
+
+function deleteBook(id) {
+  if (!db) connectDB()
+  const stmt = db.prepare("DELETE FROM books WHERE id = ?")
+  return stmt.run(id)
+}
+
 var logAction = function(message) {
   const timestamp = new Date()
   const logMessage = timestamp + ': ' + message + '\n'
@@ -83,12 +115,15 @@ function queryBooks(userInput) {
 }
 
 module.exports = {
-  connectDB,
   getBooks,
+  deleteBook,
   addBook,
   addToCart,
   logAction,
   backupData,
+  deleteAllCart,
+  deleteCart,
+  getCart,
   cacheData,
   queryBooks,
 }

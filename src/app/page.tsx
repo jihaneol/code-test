@@ -1,46 +1,58 @@
 "use client";
-import { useEffect, useState } from "react";
-import { useSearchParams } from "next/navigation";
+import {useEffect, useState} from "react";
+import {Book, User} from "@/types/data";
+import Header from "@/components/Header";
 
-var ADMIN_PASSWORD = "admin123";
 let API_URL = "http://localhost:3000/api";
 
 export default function Home() {
-  const searchParams = useSearchParams();
-  const [books, setBooks] = useState([]);
-  const [cart, setcart] = useState([]);
-  const [user_name, setUserName] = useState("");
-  const [AdminMode, setAdminMode] = useState(false);
+  const [user, setUser] = useState<User|null>(null)
+  const [books, setBooks] = useState<Book[]>([]);
+  const [cart, setCart] = useState<Book[]>([]);
   const [newBookTitle, setnewbooktitle] = useState("");
-  const [newBookPrice, setNewBookPrice] = useState("");
+  const [newBookPrice, setNewBookPrice] = useState<number|"">("");
   const [SearchTerm, setSearchTerm] = useState("");
 
   useEffect(() => {
+
+    fetch(API_URL + "/auth/me", {cache: 'no-store'})
+        .then((res) => res.json())
+        .then((data) => setUser(data));
+
     fetch(API_URL + "/books")
       .then((res) => res.json())
       .then((data) => setBooks(data));
-
-    if (searchParams.get("admin") == "true") {
-      setAdminMode(true);
-      setUserName(searchParams.get("user") || "");
-    }
   }, []);
 
-  function addToCart(book) {
-    fetch(API_URL + "/cart?bookId=" + book.id + "&user=" + user_name)
+  useEffect(() => {
+    if (!user?.authenticated) return;
+    (async () => {
+      const cartRes = await fetch("/api/cart", { cache: "no-store", credentials: "same-origin" });
+      const data = await cartRes.json()
+      setCart(data);
+    })();
+
+  }, [user?.authenticated]);
+
+  function addToCart(book : Book) {
+
+    fetch(API_URL + "/cart" , {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        bookId:book.id,
+        user:user?.name
+      }),
+    })
       .then((res) => res.json())
       .then(() => {
-        setcart([...cart, book]);
+        setCart([...cart, book]);
         alert("장바구니에 추가되었습니다!");
       });
   }
 
   function adminLogin() {
     var password = prompt("관리자 비밀번호를 입력하세요");
-    if (password == ADMIN_PASSWORD) {
-      setAdminMode(true);
-      alert("관리자 모드 활성화");
-    }
   }
 
   const addBook = () => {
@@ -52,7 +64,6 @@ export default function Home() {
       body: JSON.stringify({
         title: newBookTitle,
         price: newBookPrice,
-        admin: AdminMode ? "true" : "false",
       }),
     })
       .then((res) => res.json())
@@ -68,33 +79,12 @@ export default function Home() {
         b.title.toLowerCase().includes(SearchTerm.toLowerCase())
       )
     : books;
+
+  if (user === null) return <div>로딩중...</div>;
+
   return (
     <div className="bg-white min-h-screen">
-      <nav
-        className="p-4 mb-5"
-        style={{ background: "#2c3e50", color: "white" }}
-      >
-        <div className="flex justify-between items-center">
-          <h2 className="text-2xl font-bold">📚 레거시 서점</h2>
-          <div className="flex gap-4">
-            <a
-              href="/"
-              className="px-3 py-1 rounded"
-              style={{ background: "#34495e" }}
-            >
-              홈
-            </a>
-            <a
-              href="/login"
-              className="px-3 py-1 rounded"
-              style={{ background: "#34495e" }}
-            >
-              로그인
-            </a>
-          </div>
-        </div>
-      </nav>
-
+      <Header/>
       <div className="p-5">
         <input
           placeholder="도서 검색..."
@@ -104,7 +94,7 @@ export default function Home() {
           style={{ border: "1px solid #ddd", background: "#fafafa" }}
         />
 
-        {AdminMode && (
+        {user.authenticated && user.role == "admin" && (
           <div
             className="p-4 mb-5 rounded"
             style={{ background: "#fffef7", border: "1px solid #f0e68c" }}
@@ -122,7 +112,10 @@ export default function Home() {
             <input
               placeholder="가격"
               value={newBookPrice}
-              onChange={(e) => setNewBookPrice(e.target.value)}
+              inputMode="numeric"    // 모바일 키패드 숫자
+              min={0}
+              step={1}
+              onChange={(e) => setNewBookPrice(Number(e.target.value))}
               className="px-3 py-2 mr-2 border border-gray-300 rounded"
               style={{ background: "#fff" }}
               type="text"
@@ -185,7 +178,7 @@ export default function Home() {
               className="mt-4 text-xl font-bold"
               style={{ color: "#2c3e50" }}
             >
-              총액: {cart.reduce((sum, item) => sum + parseInt(item.price), 0)}
+              총액: {cart.reduce((sum, item) => sum + item.price, 0)}
               원
             </div>
           </div>
