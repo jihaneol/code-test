@@ -64,7 +64,6 @@ export default function Home() {
       body: JSON.stringify({
         title: newBookTitle,
         price: newBookPrice,
-        admin: user?.role == "admin" ? "true" : "false",
       }),
     })
       .then((res) => res.json())

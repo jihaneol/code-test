@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import {Book} from "@/types/data";
+import {getIronSession} from "iron-session";
+import {SessionData, sessionOptions} from "@/lib/sessionOptions";
+import {cookies} from "next/headers";
 const db = require('@/utils/db')
 
 export async function GET(request: NextRequest) {
@@ -8,11 +11,11 @@ export async function GET(request: NextRequest) {
 }
 export async function POST(request: NextRequest) {
   try {
-    const body = await request.json()
+    const session = await getIronSession<SessionData>(await cookies(), sessionOptions);
+    if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    if (session.user?.role !== "user") NextResponse.json({ error: "Forbidden" }, { status: 403});
 
-    if (body.admin !== 'true') {
-      return NextResponse.json({ error: '권한 없음' }, { status: 403 })
-    }
+    const body = await request.json()
 
     const stock = Math.floor(Math.random() * 20) + 1
     const bookId = db.addBook(body.title, body.price, stock)
