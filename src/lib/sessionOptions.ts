@@ -1,3 +1,4 @@
+// @ts-ignore
 import { IronSessionOptions } from "iron-session";
 import {User} from "@/types/data";
 export type SessionData = {

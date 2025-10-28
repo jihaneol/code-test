@@ -35,8 +35,7 @@ export default function Home() {
   }, [user?.authenticated]);
 
   function addToCart(book : Book) {
-    console.log(user)
-    console.log(user?.name)
+
     fetch(API_URL + "/cart" , {
       method: "POST",
       headers: { "Content-Type": "application/json" },
